@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>WebSocket Demo</title>
+</head>
+
+<body>
+    <h2>WebSocket（双向实时通信）</h2>
+    <pre id="output"></pre>
+    <button id="connect">连接</button>
+    <button id="disconnect">断开</button>
+
+    <script>
+        const output = document.getElementById('output');
+        const connectBtn = document.getElementById('connect');
+        const disconnectBtn = document.getElementById('disconnect');
+        let ws = null;
+
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                output.textContent += '[WebSocket] 已经连接了\n';
+                return;
+            }
+
+            // 创建WebSocket连接
+            ws = new WebSocket(`ws://${window.location.host}`);
+
+            // 连接打开
+            ws.onopen = (event) => {
+                output.textContent += '[WebSocket] 连接已建立\n';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            };
+
+            // 接收消息
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'message') {
+                        output.textContent += `[WebSocket] ${data.data.message}\n`;
+                    } else if (data.type === 'done') {
+                        output.textContent += `[WebSocket] ${data.message}\n`;
+                    }
+                } catch (error) {
+                    output.textContent += `[WebSocket] ${event.data}\n`;
+                }
+            };
+
+            // 连接关闭
+            ws.onclose = (event) => {
+                output.textContent += '[WebSocket] 连接已关闭\n';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            };
+
+            // 连接错误
+            ws.onerror = (error) => {
+                output.textContent += '[WebSocket] 连接错误\n';
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+
+        // 页面加载时自动连接
+        connect();
+    </script>
+</body>
+
+</html>

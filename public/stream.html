@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Streamable HTTP Demo</title>
+</head>
+
+<body>
+    <h2>Streamable HTTP（仿 OpenAI stream: true）</h2>
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+
+        fetch('/stream').then(async response => {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let partial = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                partial += decoder.decode(value, { stream: true });
+
+                // 拆分每一行
+                const lines = partial.split('\n');
+                partial = lines.pop(); // 保留没解析完的
+
+                for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                        const data = line.replace('data:', '').trim();
+                        if (data === '[DONE]') {
+                            output.textContent += `[STREAM] 结束了\n`;
+                            return;
+                        }
+                        output.textContent += `[STREAM] ${data}\n`;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

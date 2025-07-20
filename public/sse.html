@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>SSE Demo</title>
+</head>
+
+<body>
+    <h2>SSE (标准浏览器 API)</h2>
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+        const eventSource = new EventSource('/sse');
+
+        eventSource.onmessage = (event) => {
+            output.textContent += `[SSE] ${event.data}\n`;
+        };
+
+        eventSource.onerror = () => {
+            output.textContent += "[SSE] 连接关闭\n";
+            eventSource.close();
+        };
+    </script>
+</body>
+
+</html>
